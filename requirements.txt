@@ -9,4 +9,4 @@ einops
 omegaconf
 imageio==2.9
 wandb
-sklearn
+scikit-learn
