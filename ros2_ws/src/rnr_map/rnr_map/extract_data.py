@@ -12,6 +12,8 @@ class ExtractData(Node):
     def __init__(self):
         super().__init__('extract_data')
         
+        self.MAX_DEPTH = 12 # max depth range of RGB-D camera in robot
+        
         self.bridge = CvBridge()
         
         self.odom_sub = self.create_subscription(Odometry, "/demo/odom", self.odom_sub_callback, 10)
@@ -21,8 +23,6 @@ class ExtractData(Node):
         self.data_out = {'position':[], 'rotation': [], 'rgb':[], 'depth': []}
 
     def odom_sub_callback(self, msg):
-        print(f"[odom] ") #{msg}")
-        # breakpoint()
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         z = msg.pose.pose.position.z
@@ -36,19 +36,14 @@ class ExtractData(Node):
         self.data_out['rotation'].append([qw, qx, qy, qz])
     
     def im_rgb_sub_callback(self, msg):
-        print(f"[im_rgb] ")
         im_rgb = self.bridge.imgmsg_to_cv2(msg)
-        # im_rgb = cv2.resize(im_rgb, (128, 128))
         self.data_out['rgb'].append(im_rgb)
  
     
     def im_depth_sub_callback(self, msg):
-        print(f"[im_depth] ") #{msg}")
-        # breakpoint()
         im_depth = self.bridge.imgmsg_to_cv2(msg)
         im_depth[np.isinf(im_depth)] = 0
-        # im_depth = cv2.resize(im_depth, (128, 128))
-        im_depth = im_depth / im_depth.max()
+        im_depth = im_depth / self.MAX_DEPTH ## normalize to [0., 1.]
         im_depth = im_depth[:, :, np.newaxis]
         
         self.data_out['depth'].append(im_depth)
